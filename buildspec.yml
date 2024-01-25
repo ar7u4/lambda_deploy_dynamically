@@ -10,8 +10,11 @@ phases:
       - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
       - echo "$changed_files" > changed_files.txt  # Save the changed files to a file
 
-      - extracted_function_names=$(git log -1 --pretty=%s)
-      - for function_name in $extracted_function_names; do
+      - IFS=$'\n' # Set Internal Field Separator to newline to handle spaces in commit messages
+      - extracted_function_names=($(git log -1 --pretty=%s))
+      - unset IFS  # Reset Internal Field Separator
+
+      - for function_name in "${extracted_function_names[@]}"; do
           if [[ $function_name == *"update function:"* ]]; then
             function_name=${function_name:16}  # Extract from commit message
             if grep -q "$function_name" changed_files.txt; then
