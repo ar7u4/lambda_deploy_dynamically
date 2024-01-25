@@ -3,12 +3,8 @@ version: 0.2
 phases:
   install:
     commands:
-      - yum install git  # Install Git for Amazon Linux image
+      - yum install -y git
       - pip install awscli
-      - git config --global user.email "arjun.betageri@live.com"
-      - git config --global user.name "ar7u4"
-      - git config --global credential.helper '!f() { echo "password=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"; }; f'
-      - git --version
 
   build:
     commands:
@@ -25,7 +21,7 @@ phases:
       - changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
 
       # Iterate through changed files
-      - |
+      - >
         for changed_file in $changed_files; do
           # Ensure the commit message contains "update function:" and function name is extracted
           if [[ $function_name == "update function:"* && -n $function_name ]]; then
