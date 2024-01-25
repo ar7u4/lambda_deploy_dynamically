@@ -14,16 +14,19 @@ phases:
     commands:
       - cd $CODEBUILD_SRC_DIR
       - git --version
-      - git diff --name-only $CODEBUILD_WEBHOOK_PREV_COMMIT $CODEBUILD_RESOLVED_SOURCE_VERSION
-      # Extract changed files from commit messages
-      - changed_files=$(git diff --name-only $CODEBUILD_WEBHOOK_PREV_COMMIT $CODEBUILD_RESOLVED_SOURCE_VERSION)
+
+      # Get the last commit message
+      - commit_message=$(git log -1 --pretty=%B)
+
+      # Extract function name from commit message
+      - function_name=$(echo "$commit_message" | grep -oP "update function: \K\S+" | head -n 1)
+
+      # Get the list of changed files in the last commit
+      - changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
 
       # Iterate through changed files
       - |
         for changed_file in $changed_files; do
-          # Extract function name from commit message
-          function_name=$(git log -1 --pretty=%s | grep -oP "update function: \K\S+" | head -n 1)
-
           # Ensure the commit message contains "update function:" and function name is extracted
           if [[ $function_name == "update function:"* && -n $function_name ]]; then
             # Zip only the changed file
