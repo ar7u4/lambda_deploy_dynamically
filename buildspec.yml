@@ -2,38 +2,12 @@ version: 0.2
 
 phases:
   install:
-    commands:
-      - yum install -y git
-      - pip install awscli
-
+    runtime-versions:
+      python: 3.8
   build:
     commands:
       - cd $CODEBUILD_SRC_DIR
-      - git --version
+      - git diff --name-only $CODEBUILD_SOURCE_VERSION HEAD~1 > changed_files.txt
+      - python update_lambda.py
 
-      # Get the last commit message
-      - commit_message=$(git log -1 --pretty=%B)
-      - echo "$commit_message"
 
-      # Extract function name from commit message
-      - function_name=$(echo "$commit_message" | grep -oP "update function: \K\S+" | head -n 1)
-
-      # Get the list of changed files in the last commit
-      - changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
-
-      # Iterate through changed files
-      - >
-        for changed_file in $changed_files; do
-          # Ensure the commit message contains "update function:" and function name is extracted
-          if [[ $function_name == "update function:"* && -n $function_name ]]; then
-            # Zip only the changed file
-            zip_file_path="${function_name}.zip"
-            zip -r "$zip_file_path" "$changed_file"
-
-            # Update Lambda function with the new code
-            aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
-          fi
-        done
-
-artifacts:
-  discard-paths: yes
