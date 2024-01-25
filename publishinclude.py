@@ -10,7 +10,7 @@ def update_lambda_function(file_path):
     subprocess.run(['aws', 'lambda', 'update-function-code', '--function-name', function_name, '--zip-file', f'fileb://{zip_file_path}'])
 
     # Publish a new version
-    subprocess.run(['aws', 'lambda', 'publish-version', '--function-name', function_name])
+    subprocess.run(['aws', 'lambda', 'publish-version', '--function-name', arn:aws:lambda:ap-south-1:295134731113:function:squarefunction])
 
 if __name__ == "__main__":
     # Assuming 'changed_files.txt' contains a list of changed files
