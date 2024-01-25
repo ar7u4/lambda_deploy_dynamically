@@ -1,18 +1,23 @@
 version: 0.2
 
 phases:
-  install:  # Add the install phase if it doesn't exist
+  install:
     commands:
-      - # Use the appropriate command for your image
-      - yum install git  # Example for Amazon Linux 2
-  pre_build:
-    commands:
-      - git checkout -f $CODEBUILD_RESOLVED_SOURCE_VERSION  # Checkout code
-      - git diff --name-only HEAD~1 > changed_files.txt  # Store changed files
+      - pip install awscli
 
   build:
     commands:
-      - python conditional_update.py changed_files.txt  # Pass changed files to script
+      - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
+      - echo "$changed_files" > changed_files.txt  # Save the changed files to a file
 
-artifacts:
-  discard-paths: yes  # Discard build artifacts
+      - extracted_function_names=$(git log -1 --pretty=%s)
+      - for function_name in $extracted_function_names; do
+          if [[ $function_name == *"update function:"* ]]; then
+            function_name=${function_name:16}  # Extract from commit message
+            if grep -q "$function_name" changed_files.txt; then
+              zip_file_path="${function_name}.zip"
+              zip -r "$zip_file_path" "$function_name"  # Zip the Lambda function directory
+              aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
+            fi
+          fi
+        done
