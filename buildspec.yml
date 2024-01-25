@@ -1,6 +1,10 @@
 version: 0.2
 
 phases:
+  install:  # Add the install phase if it doesn't exist
+    commands:
+      - # Use the appropriate command for your image
+      - yum install git  # Example for Amazon Linux 2
   pre_build:
     commands:
       - git checkout -f $CODEBUILD_RESOLVED_SOURCE_VERSION  # Checkout code
