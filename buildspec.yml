@@ -13,6 +13,7 @@ phases:
 
       # Get the last commit message
       - commit_message=$(git log -1 --pretty=%B)
+      - echo "$commit_message"
 
       # Extract function name from commit message
       - function_name=$(echo "$commit_message" | grep -oP "update function: \K\S+" | head -n 1)
