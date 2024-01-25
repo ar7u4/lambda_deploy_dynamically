@@ -14,7 +14,7 @@ phases:
       - IFS=$'\n'
 
       # Extract changed files from commit messages
-      - changed_files=($(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION))
+      - changed_files=($(git diff --name-only HEAD^..HEAD))
 
       # Reset Internal Field Separator
       - unset IFS
