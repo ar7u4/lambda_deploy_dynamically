@@ -11,6 +11,8 @@ phases:
       - cd $CODEBUILD_SRC_DIR  # Replace with the correct path
 
       - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
+      - echo "Resolved Source Version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
+
       - echo "$changed_files" > changed_files.txt
 
       - IFS=$'\n'  # Set Internal Field Separator to newline
