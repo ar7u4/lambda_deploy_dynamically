@@ -3,24 +3,37 @@ version: 0.2
 phases:
   install:
     commands:
+      - yum install git  # Install Git for Amazon Linux image
       - pip install awscli
 
   build:
     commands:
+      - cd your-lambda-function-directory  # Replace with the correct path
+
       - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
-      - echo "$changed_files" > changed_files.txt  # Save the changed files to a file
+      - echo "$changed_files" > changed_files.txt
 
-      - IFS=$'\n' # Set Internal Field Separator to newline to handle spaces in commit messages
+      - IFS=$'\n'  # Set Internal Field Separator to newline
       - extracted_function_names=($(git log -1 --pretty=%s))
-      - unset IFS  # Reset Internal Field Separator
+      - unset IFS
 
-      - for function_name in "${extracted_function_names[@]}"; do
-          if [[ $function_name == *"update function:"* ]]; then
-            function_name=${function_name:16}  # Extract from commit message
-            if grep -q "$function_name" changed_files.txt; then
-              zip_file_path="${function_name}.zip"
-              zip -r "$zip_file_path" "$function_name"  # Zip the Lambda function directory
-              aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
-            fi
+      # Directly use extracted_function_names for conditional updates
+      for function_name in "${extracted_function_names[@]}"; do
+        if [[ $function_name == *"update function:"* ]]; then
+          function_name=${function_name:16}  # Extract from commit message
+          if grep -q "$function_name" changed_files.txt; then
+            zip_file_path="${function_name}.zip"
+
+            # Zip only changed files:
+            > "$zip_file_path"  # Clear any existing zip file
+            while read -r file; do
+              zip -r "$zip_file_path" "$file"
+            done < changed_files.txt
+
+            aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
           fi
-        done
+        fi
+      done
+
+artifacts:
+  discard-paths: yes
