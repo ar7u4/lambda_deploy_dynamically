@@ -18,22 +18,23 @@ phases:
       - unset IFS
 
       # Directly use extracted_function_names for conditional updates
-      for function_name in "${extracted_function_names[@]}"; do
-        if [[ $function_name == *"update function:"* ]]; then
-          function_name=${function_name:16}  # Extract from commit message
-          if grep -q "$function_name" changed_files.txt; then
-            zip_file_path="${function_name}.zip"
+      - |
+        for function_name in "${extracted_function_names[@]}"; do
+          if [[ $function_name == *"update function:"* ]]; then
+            function_name=${function_name:16}  # Extract from commit message
+            if grep -q "$function_name" changed_files.txt; then
+              zip_file_path="${function_name}.zip"
 
-            # Zip only changed files:
-            > "$zip_file_path"  # Clear any existing zip file
-            while read -r file; do
-              zip -r "$zip_file_path" "$file"
-            done < changed_files.txt
+              # Zip only changed files:
+              > "$zip_file_path"  # Clear any existing zip file
+              while read -r file; do
+                zip -r "$zip_file_path" "$file"
+              done < changed_files.txt
 
-            aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
+              aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
+            fi
           fi
-        fi
-      done
+        done
 
 artifacts:
   discard-paths: yes
