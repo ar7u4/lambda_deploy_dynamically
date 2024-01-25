@@ -4,6 +4,13 @@ phases:
   install:
     runtime-versions:
       python: 3.12
+    commands:
+      - yum install git  # Install Git for Amazon Linux image
+      - pip install awscli
+      - git config --global user.email "arjun.betageri@live.com"
+      - git config --global user.name "ar7u4"
+      - git config --global credential.helper '!f() { echo "password=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"; }; f'
+      - git --version
   build:
     commands:
       - cd $CODEBUILD_SRC_DIR
