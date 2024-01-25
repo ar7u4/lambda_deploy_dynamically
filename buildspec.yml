@@ -14,6 +14,6 @@ phases:
   build:
     commands:
       - git log -1 --name-only --pretty=format:%s > changed_files.txt
-      - python samename.py
+      - python publishinclude.py
 
 
