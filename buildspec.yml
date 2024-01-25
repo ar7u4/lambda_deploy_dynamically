@@ -13,8 +13,7 @@ phases:
       - git --version
   build:
     commands:
-      - cd $CODEBUILD_SRC_DIR
-      - git log -1 --name-only --pretty=format: > changed_files.txt
+      - git log -1 --name-only --pretty=format:%s > changed_files.txt
       - python conditional_update.py
 
 
