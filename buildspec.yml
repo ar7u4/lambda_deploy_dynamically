@@ -8,33 +8,32 @@ phases:
 
   build:
     commands:
-      - cd $CODEBUILD_SRC_DIR  # Replace with the correct path
+      - cd $CODEBUILD_SRC_DIR
 
-      - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
-      - echo "Resolved Source Version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
+      # Set Internal Field Separator to newline
+      - IFS=$'\n'
 
-      - echo "$changed_files" > changed_files.txt
+      # Extract changed files from commit messages
+      - changed_files=($(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION))
 
-      - IFS=$'\n'  # Set Internal Field Separator to newline
-      - extracted_function_names=($(git log -1 --pretty=%s))
+      # Reset Internal Field Separator
       - unset IFS
 
-      # Directly use extracted_function_names for conditional updates
+      # Iterate through changed files
       - |
-        for function_name in "${extracted_function_names[@]}"; do
-          if [[ $function_name == *"update function:"* ]]; then
-            function_name=${function_name:16}  # Extract from commit message
-            if grep -q "$function_name" changed_files.txt; then
-              zip_file_path="${function_name}.zip"
+        for changed_file in "${changed_files[@]}"; do
+          # Extract function name from commit message
+          function_name=$(git log -1 --pretty=%s | grep -oP "update function: \K\S+" | head -n 1)
 
-              # Zip only changed files:
-              > "$zip_file_path"  # Clear any existing zip file
-              while read -r file; do
-                zip -r "$zip_file_path" "$file"
-              done < changed_files.txt
+          # Ensure the commit message contains "update function:" and function name is extracted
+          if [[ $function_name == "update function:"* && -n $function_name ]]; then
+            zip_file_path="${function_name}.zip"
 
-              aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
-            fi
+            # Zip only the changed file
+            zip -r "$zip_file_path" "$changed_file"
+
+            # Update Lambda function with the new code
+            aws lambda update-function-code --function-name "$function_name" --zip-file "fileb://$zip_file_path"
           fi
         done
 
