@@ -6,6 +6,8 @@ def update_lambda_function(file_path):
     zip_file_path = f'/tmp/{function_name}.zip'
     subprocess.run(['zip', '-j', zip_file_path, file_path])
     subprocess.run(['aws', 'lambda', 'update-function-code', '--function-name', function_name, '--zip-file', f'fileb://{zip_file_path}'])
+    subprocess.run(['aws', 'lambda', 'publish-version', '--function-name', function_name])
+    
 
 def main():
     with open('changed_files.txt', 'r') as file:
