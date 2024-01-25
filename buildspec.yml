@@ -8,7 +8,7 @@ phases:
 
   build:
     commands:
-      - cd your-lambda-function-directory  # Replace with the correct path
+      - cd $CODEBUILD_SRC_DIR  # Replace with the correct path
 
       - changed_files=$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION)
       - echo "$changed_files" > changed_files.txt
