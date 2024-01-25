@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - git checkout -f $CODEBUILD_RESOLVED_SOURCE_VERSION  # Checkout code
+      - git diff --name-only HEAD~1 > changed_files.txt  # Store changed files
+
+  build:
+    commands:
+      - python conditional_update.py changed_files.txt  # Pass changed files to script
+
+artifacts:
+  discard-paths: yes  # Discard build artifacts
