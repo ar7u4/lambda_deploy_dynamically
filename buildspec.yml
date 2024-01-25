@@ -8,6 +8,6 @@ phases:
     commands:
       - cd $CODEBUILD_SRC_DIR
       - git diff --name-only $CODEBUILD_SOURCE_VERSION HEAD~1 > changed_files.txt
-      - python update_lambda.py
+      - python conditional_update.py
 
 
