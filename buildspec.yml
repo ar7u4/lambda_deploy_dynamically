@@ -13,6 +13,7 @@ phases:
   build:
     commands:
       - cd $CODEBUILD_SRC_DIR
+      - git status
       - git diff --name-only $CODEBUILD_WEBHOOK_PREV_COMMIT $CODEBUILD_RESOLVED_SOURCE_VERSION
       # Extract changed files from commit messages
       - changed_files=$(git diff --name-only $CODEBUILD_WEBHOOK_PREV_COMMIT $CODEBUILD_RESOLVED_SOURCE_VERSION)
