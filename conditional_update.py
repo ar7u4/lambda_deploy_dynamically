@@ -13,7 +13,8 @@ def update_lambda_function(file_path, function_name):
 
 def main():
     with open('changed_files.txt', 'r') as file:
-        changed_files = file.read().splitlines()
+        # Skip the commit message and get the list of changed files
+        changed_files = [line.strip() for line in file.readlines()[1:]]
 
     for file_path in changed_files:
         if file_path.endswith('.py') and file_path.startswith('lambda'):
