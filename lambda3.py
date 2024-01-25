@@ -13,7 +13,7 @@ def lambda_handler(event, context):
             content = file.read()
         return {
             "statusCode": 200,
-            "body": f"COntent of {file_path}:\n{content}"
+            "body": f"Content of {file_path}:\n{content}"
         }
     except FileNotFoundError:
         return {
