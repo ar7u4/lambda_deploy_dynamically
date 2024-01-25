@@ -14,17 +14,9 @@ phases:
     commands:
       - cd $CODEBUILD_SRC_DIR
       - git --version
-
-      # Get the last commit message
       - commit_message=$(git log -1 --pretty=%B)
-
-      # Extract function name from commit message
       - function_name=$(echo "$commit_message" | grep -oP "update function: \K\S+" | head -n 1)
-
-      # Get the list of changed files in the last commit
       - changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
-
-      # Iterate through changed files
       - |
         for changed_file in $changed_files; do
           # Ensure the commit message contains "update function:" and function name is extracted
