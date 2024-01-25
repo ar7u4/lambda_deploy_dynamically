@@ -1,21 +1,28 @@
 import os
+import re
 import subprocess
 
-def update_lambda_function(function_name, zip_file_path):
-    subprocess.run(["aws", "lambda", "update-function-code",
-                    "--function-name", function_name,
-                    "--zip-file", "fileb://" + zip_file_path])
+def extract_function_name(commit_message):
+    match = re.search(r'update function: (.+)', commit_message)
+    return match.group(1) if match else None
 
-with open(os.environ["CHANGED_FILES_FILE"], "r") as f:
-    changed_files = f.readlines()
+def update_lambda_function(file_path, function_name):
+    zip_file_path = f'/tmp/{function_name}.zip'
+    subprocess.run(['zip', '-j', zip_file_path, file_path])
+    subprocess.run(['aws', 'lambda', 'update-function-code', '--function-name', function_name, '--zip-file', f'fileb://{zip_file_path}'])
 
-extracted_function_names = subprocess.check_output(["git", "log", "-1", "--pretty=%s"]).decode("utf-8").split(" ")
+def main():
+    with open('changed_files.txt', 'r') as file:
+        changed_files = file.read().splitlines()
 
-for function_name in extracted_function_names:
-    if function_name.startswith("update function:"):
-        function_name = function_name[16:]  # Extract from commit message
-        if any(changed_file.strip().split(".")[0] == function_name for changed_file in changed_files):
-            zip_file_path = f"{function_name}.zip"
-            changed_file = next(changed_file for changed_file in changed_files if function_name in changed_file)  # Find matching file
-            subprocess.run(["zip", "-r", zip_file_path, changed_file])  # Create zip
-            update_lambda_function(function_name, zip_file_path)  # Update function
+    for file_path in changed_files:
+        if file_path.endswith('.py') and file_path.startswith('lambda'):
+            commit_message = subprocess.run(['git', 'log', '-1', '--pretty=%B'], capture_output=True, text=True).stdout.strip()
+            function_name = extract_function_name(commit_message)
+
+            if function_name:
+                update_lambda_function(file_path, function_name)
+                print(f'Lambda function {function_name} updated successfully.')
+
+if __name__ == "__main__":
+    main()
